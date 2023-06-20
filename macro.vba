@@ -31,13 +31,13 @@ Function CalcularHoraExtra(ent1 As Date, sai1 As Date, ent2 As Date, sai2 As Dat
         Exit Function
     End If
     
-    
-    If (Abs(diferencaEntrada1 + diferencaSaida1) > TimeValue("00:05:01")) Then
+    limite5Min = TimeValue("00:05:01")
+    If (Abs(diferencaEntrada1) > limite5Min Or Abs(diferencaSaida1) > limite5Min) Then
         CalcularHoraExtra = FormatarDecimalParaTempo(Total)
         Exit Function
     End If
     
-    If (Abs(diferencaEntrada2 + diferencaSaida2) > TimeValue("00:05:01")) Then
+    If (Abs(diferencaEntrada2) > limite5Min Or Abs(diferencaSaida2) > limite5Min) Then
         If (diferencaEntrada2 + diferencaSaida2 > 0) Then
             pontoComHoraNoturna = (diferencaEntrada2 + diferencaSaida2) / 52.5 * 60
             Total = diferencaEntrada1 + diferencaSaida1 + pontoComHoraNoturna
@@ -98,11 +98,14 @@ Sub TestesAutomatizados()
     '5 minutos tolerancia saida2
     Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:15", "21:30", "22:30", "01:35")) = "00:00:00"
     
-    '6 minutos cobrados entrada1
-    Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:12", "21:33", "22:30", "01:30")) = "00:06:00"
+    '6 minutos não podem ser cobrandos na entrada 1 pois não deu a tolerancia de 5 min
+    Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:12", "21:33", "22:30", "01:30")) = "00:00:00"
+    
+    '6 minutos de atraso de manhã não pode descontar
+    Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:19", "21:29", "22:30", "01:30")) = "00:00:00"
     
     '6 minutos cobrados entrada2
-    Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:15", "21:30", "22:27", "01:33")) = "00:06:00"
+    Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:15", "21:30", "22:27", "01:33")) = "00:00:00"
     
     '60 minutos cobrados entrada2
     Debug.Assert FormatarHora(CalcularHoraExtra("16:15", "21:30", "22:30", "01:30", "16:15", "21:30", "22:30", "02:30")) = "01:08:00"
